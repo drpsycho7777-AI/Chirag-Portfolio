@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chirag Sojitra | UI/UX Designer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- VanillaTilt JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+
+    <!-- Spline 3D Viewer Script -->
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.5/build/spline-viewer.js"></script>
+
+    <style>
+        /* =========================================
+           DESIGN FUNDAMENTALS & TYPOGRAPHY
+           ========================================= */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050507; 
+            color: #FFFFFF; /* Primary */
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .font-serif { font-family: 'Playfair Display', serif; }
+        h1, h2, h3 { text-wrap: balance; }
+
+        /* =========================================
+           PRELOADER
+           ========================================= */
+        #preloader { transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1); }
+        .preloader-hidden { transform: translateY(-100%); }
+
+        /* =========================================
+           AI BOT CUSTOM CURSOR
+           ========================================= */
+        @media (pointer: fine) { body, a, button, spline-viewer { cursor: none !important; } }
+        
+        .cursor-dot {
+            width: 20px; height: 20px; position: fixed; top: 0; left: 0;
+            z-index: 99999; pointer-events: none;
+            transform: translate(-50%, -50%); transition: transform 0.1s;
+        }
+        .cursor-dot::before {
+            content: ''; position: absolute; inset: -4px; z-index: -1;
+            background: linear-gradient(135deg, #60A5FA, #3B82F6, #818CF8);
+            border-radius: 50%; filter: blur(6px); opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        .cursor-outline {
+            width: 32px; height: 32px; border: 1px solid rgba(255, 255, 255, 0.2); position: fixed;
+            top: 0; left: 0; border-radius: 50%; z-index: 99998; pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .cursor-outline.hovered { width: 75px; height: 75px; background-color: rgba(255, 255, 255, 0.05); border-color: transparent; backdrop-filter: blur(4px); }
+        .cursor-dot.hovered::before { opacity: 0.9; filter: blur(10px); inset: -8px; }
+        .cursor-dot.hovered .ai-bot-icon { transform: scale(1.15) translateY(-2px); filter: drop-shadow(0 0 10px #60A5FA); }
+        .cursor-dot.hovered .bot-eye { fill: #FFFFFF; }
+        @media (pointer: coarse) { .cursor-dot, .cursor-outline { display: none; } }
+
+        /* =========================================
+           SCROLL REVEALS & AMBIENT GLOWS
+           ========================================= */
+        .bg-glow { position: absolute; width: 1000px; height: 1000px; background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, rgba(5, 5, 7, 0) 70%); top: -200px; left: -300px; z-index: -1; pointer-events: none; }
+        .bg-glow-right { position: absolute; width: 1000px; height: 1000px; background: radial-gradient(circle, rgba(255, 255, 255, 0.02) 0%, rgba(5, 5, 7, 0) 70%); bottom: 10%; right: -300px; z-index: -1; pointer-events: none; }
+
+        /* Clean Translate Reveal (No Blur) */
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        
+        /* Typography Strict Reveal */
+        .text-reveal-anim { opacity: 0; transform: translateY(30px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); }
+        .active .text-reveal-anim { opacity: 1; transform: translateY(0); }
+
+        .delay-100 { transition-delay: 100ms; } .delay-200 { transition-delay: 200ms; } .delay-300 { transition-delay: 300ms; } .delay-400 { transition-delay: 400ms; }
+
+        /* Magnetic Buttons & Tool Bubbles */
+        .magnetic-wrap { display: inline-block; padding: 20px; margin: -20px; }
+        .magnetic-btn { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .tool-bubble { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease; }
+
+        /* Spline Config */
+        spline-viewer::part(logo) { display: none !important; }
+        
+        /* Floating Animations */
+        @keyframes float-main { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
+        @keyframes float-slow { 0%, 100% { transform: translateY(0px) rotate(-3deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
+        @keyframes float-medium { 0%, 100% { transform: translateY(0px) rotate(2deg); } 50% { transform: translateY(-18px) rotate(-2deg); } }
+        @keyframes float-fast { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-22px) rotate(5deg); } }
+        .animate-float { animation: float-main 6s ease-in-out infinite; }
+        .animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
+        .animate-float-medium { animation: float-medium 5s ease-in-out infinite; }
+        .animate-float-fast { animation: float-fast 4.5s ease-in-out infinite; }
+
+        /* Accent Gradient Text */
+        .text-accent {
+            background: linear-gradient(135deg, #60A5FA, #3B82F6, #818CF8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            padding-bottom: 0.1em;
+        }
+    </style>
+</head>
+
+<body class="relative antialiased selection:bg-white selection:text-black overflow-hidden">
+
+    <!-- PRELOADER -->
+    <div id="preloader" class="fixed inset-0 z-[1000000] bg-[#050507] flex flex-col items-center justify-center">
+        <div class="flex flex-col items-center w-64">
+            <!-- Primary Color -->
+            <span id="loader-counter" class="text-7xl md:text-9xl font-light text-white mb-4 tracking-tighter">0%</span>
+            <div class="w-full h-[1px] bg-white/20 relative">
+                <div id="loader-bar" class="absolute top-0 left-0 h-full bg-white w-0 transition-all duration-100 shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
+            </div>
+            <!-- Secondary Color -->
+            <span class="mt-6 text-slate-300 tracking-[0.4em] text-xs md:text-sm uppercase font-medium">Loading</span>
+        </div>
+    </div>
+
+    <!-- AI BOT CURSOR -->
+    <div class="cursor-dot flex items-center justify-center">
+        <svg class="ai-bot-icon w-full h-full text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-4 0V4a2 2 0 0 1 2-2z"></path>
+            <rect x="4" y="8" width="16" height="12" rx="4" fill="#0A0A0C" stroke="rgba(255,255,255,0.8)"></rect>
+            <!-- Default grey eyes, transition to white on hover -->
+            <circle cx="9" cy="14" r="1.5" fill="#94A3B8" stroke="none" class="bot-eye transition-colors duration-300"></circle>
+            <circle cx="15" cy="14" r="1.5" fill="#94A3B8" stroke="none" class="bot-eye transition-colors duration-300"></circle>
+        </svg>
+    </div>
+    <div class="cursor-outline"></div>
+
+    <!-- AMBIENT BACKGROUND GLOWS -->
+    <div class="bg-glow parallax-bg" data-speed="0.15"></div>
+    <div class="bg-glow-right parallax-bg" data-speed="-0.15"></div>
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full z-40 bg-[#050507]/85 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
+        <div class="flex justify-between items-center py-6 px-8 md:px-16 lg:px-24 max-w-[1920px] mx-auto">
+            <!-- Primary Color -->
+            <a href="#home" class="text-xl font-medium tracking-wide text-white cursor-hover-target">CHIRAG SOJITRA</a>
+            <!-- Tertiary Color for unselected links, Secondary on hover -->
+            <div class="hidden md:flex gap-10 text-sm text-slate-400 font-medium tracking-wide">
+                <a href="#work" class="hover:text-slate-300 transition cursor-hover-target">Work</a>
+                <a href="#about" class="hover:text-slate-300 transition cursor-hover-target">About</a>
+                <a href="#arsenal" class="hover:text-slate-300 transition cursor-hover-target">Tools</a>
+            </div>
+            <a href="#contact" class="px-7 py-3 text-sm bg-white text-black font-medium rounded-full hover:bg-slate-200 transition duration-300 cursor-hover-target">Let's Connect</a>
+        </div>
+    </nav>
+
+    <!-- 1. HERO SECTION -->
+    <header id="home" class="min-h-screen flex items-center pt-32 pb-24 overflow-visible relative">
+        <div class="max-w-[1920px] mx-auto px-8 md:px-16 lg:px-24 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+            
+            <!-- Left Text Content -->
+            <div class="order-2 lg:order-1 reveal active z-10">
+                <!-- Secondary Color Text -->
+                <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-white/10 bg-white/5 text-xs text-slate-300 mb-8 tracking-widest uppercase reveal active delay-100 font-medium shadow-xl">
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> UI/UX Designer · Ahmedabad, India
+                </div>
+                
+                <!-- PRIMARY TYPOGRAPHY (All White, styling creates hierarchy) -->
+                <h1 class="text-5xl md:text-7xl xl:text-[6.5rem] font-serif font-semibold leading-[1.1] mb-8 reveal active delay-200 text-white">
+                    <span class="italic font-normal text-reveal-anim delay-100 inline-block text-accent">Logic</span> 
+                    <span class="text-reveal-anim delay-200 inline-block">meets</span><br />
+                    <span class="text-reveal-anim delay-300 inline-block">Creativity.</span>
+                </h1>
+                
+                <!-- Tertiary Color Text -->
+                <p class="text-lg md:text-xl text-slate-400 max-w-xl leading-relaxed mb-12 font-light reveal active delay-300">
+                    Hi, I'm a UI/UX Designer with a unique foundation in commerce and finance. I build intuitive, scalable, and visually cinematic digital experiences.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-5 reveal active delay-400">
+                    <div class="magnetic-wrap">
+                        <a href="#work" class="magnetic-btn block px-8 py-4 bg-white text-black text-center rounded-full font-semibold shadow-[0_0_40px_rgba(255,255,255,0.15)] cursor-hover-target tracking-wide text-sm uppercase">Explore Work ↓</a>
+                    </div>
+                    <div class="magnetic-wrap">
+                        <a href="#contact" class="magnetic-btn block px-8 py-4 border border-white/20 text-center rounded-full font-semibold text-white hover:bg-white/10 transition duration-300 cursor-hover-target tracking-wide text-sm uppercase">Contact Me ↗</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right 3D Character & PUSHED OUT Icons -->
+            <div class="order-1 lg:order-2 flex justify-center items-center h-[450px] md:h-[600px] xl:h-[700px] relative reveal active overflow-visible">
+                
+                <spline-viewer class="w-[115%] h-[115%] z-10 relative cursor-hover-target drop-shadow-2xl" style="margin: -7.5%;" loading-anim="false" url="https://prod.spline.design/tXqr1q8Hikk9NsXz/scene.splinecode"></spline-viewer>
+                
+                <!-- Subtle white back-glow -->
+                <div class="absolute inset-0 bg-white/5 blur-3xl -z-10 rounded-full opacity-40 mix-blend-screen"></div>
+
+                <!-- FLOATING TOOL ICONS AROUND 3D CHARACTER -->
+                
+                <!-- 1. Gemini 4-Point Star — Top Left -->
+                <div class="absolute top-[8%] left-[5%] md:left-[0%] z-20 animate-float-medium w-14 h-14 md:w-16 md:h-16 flex items-center justify-center cursor-hover-target" style="animation-delay: 0s;">
+                    <div class="w-full h-full rounded-2xl bg-black/60 backdrop-blur-md border border-white/15 shadow-[0_0_20px_rgba(255,255,255,0.15),0_0_40px_rgba(255,255,255,0.08)] flex items-center justify-center p-2.5">
+                        <svg viewBox="0 0 100 100" fill="white" class="w-full h-full drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+                            <path d="M50 0 C52 38, 62 48, 100 50 C62 52, 52 62, 50 100 C48 62, 38 52, 0 50 C38 48, 48 38, 50 0Z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 2. Claude — Top Right -->
+                <div class="absolute top-[8%] right-[5%] md:right-[0%] z-20 animate-float-slow w-14 h-14 md:w-16 md:h-16 flex items-center justify-center cursor-hover-target" style="animation-delay: 0.8s;">
+                    <div class="w-full h-full rounded-2xl bg-black/60 backdrop-blur-md border border-white/15 shadow-[0_0_20px_rgba(217,119,87,0.25),0_0_40px_rgba(217,119,87,0.1)] flex items-center justify-center p-2">
+                        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_6px_rgba(217,119,87,0.5)]">
+                            <g transform="translate(50,45)">
+                                <line x1="0" y1="0" x2="0" y2="-26" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="18" y2="-18" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="26" y2="0" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="18" y2="18" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="0" y2="26" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="-18" y2="18" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="-26" y2="0" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="-18" y2="-18" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="9" y2="-24" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="24" y2="-9" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="24" y2="9" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="9" y2="24" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="-9" y2="24" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="-24" y2="9" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="-24" y2="-9" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                                <line x1="0" y1="0" x2="-9" y2="-24" stroke="#D97757" stroke-width="7" stroke-linecap="round"/>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 3. Figma — Middle Left -->
+                <div class="absolute top-[45%] -translate-y-1/2 -left-[2%] md:-left-[8%] z-20 animate-float-fast hidden sm:block w-14 h-14 md:w-16 md:h-16 flex items-center justify-center cursor-hover-target" style="animation-delay: 1.5s;">
+                    <div class="w-full h-full rounded-2xl bg-black/60 backdrop-blur-md border border-white/15 shadow-[0_0_20px_rgba(162,89,255,0.2),0_0_40px_rgba(162,89,255,0.1)] flex items-center justify-center p-2.5">
+                        <svg viewBox="0 0 38 57" class="w-full h-full drop-shadow-[0_0_6px_rgba(162,89,255,0.4)]">
+                            <path fill="#F24E1E" d="M19 28.5a9.5 9.5 0 0 1 9.5-9.5h0a9.5 9.5 0 0 1 0 19h0A9.5 9.5 0 0 1 19 28.5z"/>
+                            <path fill="#A259FF" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z"/>
+                            <path fill="#1ABCFE" d="M19 0v19h9.5a9.5 9.5 0 0 0 0-19H19z"/>
+                            <path fill="#0ACF83" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z"/>
+                            <path fill="#FF7262" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 4. Gemini Star (accent) — Middle Right -->
+                <div class="absolute top-[45%] -translate-y-1/2 -right-[2%] md:-right-[8%] z-20 animate-float-fast hidden sm:block w-12 h-12 md:w-14 md:h-14 flex items-center justify-center cursor-hover-target" style="animation-delay: 0.5s;">
+                    <div class="w-full h-full rounded-xl bg-black/60 backdrop-blur-md border border-white/15 shadow-[0_0_18px_rgba(255,255,255,0.12),0_0_36px_rgba(255,255,255,0.06)] flex items-center justify-center p-2">
+                        <svg viewBox="0 0 100 100" fill="white" class="w-full h-full drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] opacity-80">
+                            <path d="M50 5 C51 40, 60 49, 95 50 C60 51, 51 60, 50 95 C49 60, 40 51, 5 50 C40 49, 49 40, 50 5Z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 5. Photoshop — Bottom Left -->
+                <div class="absolute bottom-[8%] left-[5%] md:left-[0%] z-20 animate-float-slow w-14 h-14 md:w-16 md:h-16 flex items-center justify-center cursor-hover-target" style="animation-delay: 2s;">
+                    <div class="w-full h-full rounded-2xl bg-[#001e36]/90 backdrop-blur-md border border-[#31a8ff]/30 shadow-[0_0_20px_rgba(49,168,255,0.2),0_0_40px_rgba(49,168,255,0.1)] flex items-center justify-center p-1.5">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <text x="50" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-weight="600" font-size="42" fill="#31A8FF" class="drop-shadow-[0_0_8px_rgba(49,168,255,0.5)]">Ps</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 6. Illustrator — Bottom Right -->
+                <div class="absolute bottom-[8%] right-[5%] md:right-[0%] z-20 animate-float-medium w-14 h-14 md:w-16 md:h-16 flex items-center justify-center cursor-hover-target" style="animation-delay: 1.2s;">
+                    <div class="w-full h-full rounded-2xl bg-[#300000]/90 backdrop-blur-md border border-[#FF9A00]/30 shadow-[0_0_20px_rgba(255,154,0,0.2),0_0_40px_rgba(255,154,0,0.1)] flex items-center justify-center p-1.5">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <text x="50" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-weight="600" font-size="42" fill="#FF9A00" class="drop-shadow-[0_0_8px_rgba(255,154,0,0.5)]">Ai</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. WORK SECTION -->
+    <section id="work" class="max-w-[1920px] mx-auto px-8 md:px-16 lg:px-24 py-40 border-t border-white/5 relative z-20 bg-[#050507]">
+        <!-- Primary Color Heading -->
+        <h2 class="text-5xl md:text-6xl font-serif mb-32 text-white reveal text-reveal-anim">Selected <span class="italic font-normal text-accent">Work.</span></h2>
+        
+        <!-- Project 1: ELEVATE -->
+        <div class="flex flex-col xl:flex-row gap-20 items-center mb-48 reveal delay-100">
+            <div class="w-full xl:w-[60%] rounded-[2rem] overflow-hidden relative aspect-[16/10] cursor-hover-target shadow-2xl bg-white/5 border border-white/10" data-tilt data-tilt-max="3" data-tilt-speed="400" data-tilt-perspective="1500" data-tilt-glare data-tilt-max-glare="0.1">
+                <img src="ELEVATE _.jpg" alt="Elevate Mockup" class="object-cover w-full h-full hover:scale-[1.03] transition duration-[1.5s] ease-out opacity-90 hover:opacity-100">
+            </div>
+            <div class="w-full xl:w-[40%] xl:pl-8 reveal delay-200">
+                <!-- Secondary Color Tags -->
+                <div class="flex flex-wrap gap-3 mb-8 text-[11px] font-semibold tracking-widest text-slate-300">
+                    <span class="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full uppercase">Fintech</span>
+                    <span class="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full uppercase">SaaS</span>
+                </div>
+                <!-- Primary Heading -->
+                <h3 class="text-4xl md:text-5xl font-semibold mb-4 leading-tight text-white text-reveal-anim">ELEVATE</h3>
+                <!-- Secondary Subheading -->
+                <h4 class="text-2xl text-slate-300 mb-6 font-serif italic text-reveal-anim delay-100">Premium Society Management</h4>
+                <!-- Tertiary Body -->
+                <p class="text-slate-400 text-lg leading-loose mb-12">
+                    An end-to-end management application transforming residential living into a high-trust digital ecosystem. I designed a platform that bridges communication gaps featuring a complex fintech-integrated payment gateway.
+                </p>
+                <a href="https://www.behance.net/gallery/246536719/ELEVATE-Society-Management-Case-Study" target="_blank" class="group inline-flex items-center gap-3 pb-2 border-b border-white/40 hover:border-white transition-all duration-500 font-medium cursor-hover-target uppercase tracking-wide text-sm text-slate-200 hover:text-white">Read Case Study <span class="transition-transform duration-500 ease-out group-hover:translate-x-2">➔</span></a>
+            </div>
+        </div>
+
+        <!-- Project 2: ECHO -->
+        <div class="flex flex-col xl:flex-row-reverse gap-20 items-center mb-16 reveal delay-100">
+            <div class="w-full xl:w-[60%] rounded-[2rem] overflow-hidden relative aspect-[16/10] cursor-hover-target shadow-2xl bg-white/5 border border-white/10" data-tilt data-tilt-max="3" data-tilt-speed="400" data-tilt-perspective="1500" data-tilt-glare data-tilt-max-glare="0.1">
+                <img src="ECHO_.jpg" alt="Echo Mockup" class="object-cover w-full h-full hover:scale-[1.03] transition duration-[1.5s] ease-out opacity-90 hover:opacity-100">
+            </div>
+            <div class="w-full xl:w-[40%] xl:pr-8 reveal delay-200">
+                <div class="flex flex-wrap gap-3 mb-8 text-[11px] font-semibold tracking-widest text-slate-300">
+                    <span class="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full uppercase">AI Integration</span>
+                    <span class="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full uppercase">Ed-Tech</span>
+                </div>
+                <h3 class="text-4xl md:text-5xl font-semibold mb-4 leading-tight text-white text-reveal-anim">ECHO</h3>
+                <h4 class="text-2xl text-slate-300 mb-6 font-serif italic text-reveal-anim delay-100">AI-Driven Student Network</h4>
+                <p class="text-slate-400 text-lg leading-loose mb-12">
+                    A productivity ecosystem for the modern student merging academic support with social interaction to eliminate burnout. Spearheaded AI-verified content flows and life-balance trackers.
+                </p>
+                <a href="https://www.behance.net/gallery/247758371/ECHO-the-student-social-network" target="_blank" class="group inline-flex items-center gap-3 pb-2 border-b border-white/40 hover:border-white transition-all duration-500 font-medium cursor-hover-target uppercase tracking-wide text-sm text-slate-200 hover:text-white">Read Case Study <span class="transition-transform duration-500 ease-out group-hover:translate-x-2">➔</span></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. ABOUT SECTION -->
+    <section id="about" class="bg-[#0A0A0D] py-48 border-t border-white/5 relative z-20">
+        <div class="max-w-[1920px] mx-auto px-8 md:px-16 lg:px-24 grid xl:grid-cols-2 gap-24 items-center">
+            <div class="reveal">
+                <!-- Primary Heading -->
+                <h2 class="text-5xl md:text-6xl font-serif mb-10 leading-[1.1] text-white text-reveal-anim"><span class="text-accent">Designing</span> with <br><span class="italic font-normal">purpose & precision.</span></h2>
+                <!-- Secondary -->
+                <h3 class="text-2xl font-medium mb-6 text-slate-300">From Finance to Design</h3>
+                <!-- Tertiary -->
+                <p class="text-slate-400 text-lg leading-loose mb-10">
+                    My professional story began with a solid foundation in commerce. After graduating with a B.Com in
+                    2023, I spent over a year as a Business Loan Coordinator. This role taught me how to navigate
+                    complex data, manage stakeholder expectations, and solve problems under high pressure. <br><br>
+                    Realizing my passion lay in building the tools people use, rather than just managing the numbers, I
+                    made the pivot to UI/UX Design. Today, I bring an analytical, logic-driven mindset to the creative world.
+                </p>
+            </div>
+            
+            <div class="space-y-8">
+                <h3 class="text-2xl font-serif mb-8 text-white reveal text-reveal-anim"><span class="text-accent">Beyond</span> the Canvas</h3>
+                <div class="p-8 rounded-[2rem] bg-white/5 border border-white/5 hover:border-white/20 transition group flex gap-8 items-start reveal delay-100 cursor-hover-target shadow-xl">
+                    <div class="text-4xl mt-1 opacity-80 group-hover:opacity-100 transition group-hover:scale-110">🏏</div>
+                    <div>
+                        <h4 class="text-xl font-medium mb-3 text-white">Competitive Spirit</h4>
+                        <p class="text-slate-400 leading-relaxed text-md">As a passionate Box Cricket player with consecutive trophies, I bring a highly competitive, team-first attitude to every design project.</p>
+                    </div>
+                </div>
+                <div class="p-8 rounded-[2rem] bg-white/5 border border-white/5 hover:border-white/20 transition group flex gap-8 items-start reveal delay-200 cursor-hover-target shadow-xl">
+                    <div class="text-4xl mt-1 opacity-80 group-hover:opacity-100 transition group-hover:scale-110">🎥</div>
+                    <div>
+                        <h4 class="text-xl font-medium mb-3 text-white">Cinematic Aesthetic</h4>
+                        <p class="text-slate-400 leading-relaxed text-md">Inspired by anime and Studio Ghibli, I incorporate warmth, atmosphere, and detailed storytelling into my visual UI layouts.</p>
+                    </div>
+                </div>
+                <div class="p-8 rounded-[2rem] bg-white/5 border border-white/5 hover:border-white/20 transition group flex gap-8 items-start reveal delay-300 cursor-hover-target shadow-xl">
+                    <div class="text-4xl mt-1 opacity-80 group-hover:opacity-100 transition group-hover:scale-110">🏋️‍♂️</div>
+                    <div>
+                        <h4 class="text-xl font-medium mb-3 text-white">Design Discipline</h4>
+                        <p class="text-slate-400 leading-relaxed text-md">Monday to Saturday, you’ll find me in the gym. The discipline required for physical fitness directly translates into building scalable design systems.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. TOOL BUBBLES SECTION (All images mapped correctly) -->
+    <section id="arsenal" class="bg-[#050507] py-48 border-y border-white/5 relative z-20 overflow-hidden">
+        <div class="max-w-[1920px] mx-auto px-8 md:px-16 lg:px-24 text-center">
+            <h2 class="text-5xl md:text-6xl font-serif mb-8 reveal text-white text-reveal-anim">My <span class="italic font-normal text-accent">Arsenal.</span></h2>
+            <p class="text-slate-400 text-lg mb-24 max-w-2xl mx-auto reveal delay-100 leading-relaxed">A curated stack of design software and artificial intelligence tools I use daily to accelerate workflows and craft premium digital products.</p>
+            
+            <div id="bubble-container" class="relative w-full max-w-4xl mx-auto flex flex-wrap justify-center content-center gap-6 z-10 reveal delay-200">
+                <!-- Figma -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="Figma 1.jpg" alt="Figma" class="w-full h-full object-cover">
+                </div>
+                <!-- Photoshop -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="photoshop 1.jpg" alt="Photoshop" class="w-full h-full object-cover">
+                </div>
+                <!-- Illustrator -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="illustrator-icon.jpg" alt="Illustrator" class="w-full h-full object-cover">
+                </div>
+                <!-- Canva -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="canva 1.jpg" alt="Canva" class="w-full h-full object-cover">
+                </div>
+                <!-- ChatGPT -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="chat gpt 1.jpg" alt="ChatGPT" class="w-full h-full object-cover">
+                </div>
+                <!-- Claude -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="cloade ai.jpg" alt="Claude AI" class="w-full h-full object-cover">
+                </div>
+                <!-- Gemini -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="gemini ai.jpg" alt="Gemini" class="w-full h-full object-cover">
+                </div>
+                <!-- Gamma -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="gamma ai.jpg" alt="Gamma AI" class="w-full h-full object-cover">
+                </div>
+                <!-- Grok -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="grock ai.jpg" alt="Grok AI" class="w-full h-full object-cover">
+                </div>
+                <!-- Stitch -->
+                <div class="tool-bubble w-20 h-20 rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg cursor-hover-target">
+                    <img src="stitch ai.png" alt="Stitch AI" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. TIMELINE / RESUME SECTION (BOTTOM-UP PROGRESS BAR) -->
+    <section id="resume" class="max-w-[1920px] mx-auto px-8 md:px-16 lg:px-24 py-48 relative z-20 bg-[#0A0A0D]">
+        <div class="max-w-4xl mx-auto reveal">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-28 gap-6 border-b border-white/10 pb-10">
+                <div>
+                    <h2 class="text-5xl font-serif mb-4 text-white text-reveal-anim"><span class="text-accent">Career</span> <span class="italic font-normal">Timeline.</span></h2>
+                    <p class="text-slate-400 text-lg">My professional and educational journey.</p>
+                </div>
+                <div class="magnetic-wrap">
+                    <a href="#" target="_blank" class="magnetic-btn px-8 py-4 bg-white text-black font-semibold rounded-full hover:bg-slate-200 transition flex items-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.1)] cursor-hover-target text-sm tracking-wide uppercase">
+                        Download Resume
+                    </a>
+                </div>
+            </div>
+
+            <div id="timeline-container" class="space-y-20 ml-6 pl-14 relative">
+                <!-- Background track -->
+                <div class="absolute left-0 top-3 bottom-0 w-[2px] bg-white/10 rounded-full">
+                    <!-- Pure White Progress Beam -->
+                    <div id="timeline-progress" class="absolute top-0 left-0 w-full bg-white h-0 transition-none shadow-[0_0_15px_rgba(255,255,255,0.8)] rounded-full"></div>
+                </div>
+
+                <div class="relative reveal delay-100 cursor-hover-target group timeline-node">
+                    <div class="timeline-dot absolute -left-[65px] top-1 w-[22px] h-[22px] bg-[#0A0A0D] rounded-full border-4 border-slate-700 transition duration-300 z-10"></div>
+                    <div class="text-[11px] tracking-widest text-slate-300 font-bold mb-3 uppercase">Present</div>
+                    <h3 class="text-3xl font-semibold text-white mb-3">UI/UX Designer</h3>
+                    <p class="text-slate-400 text-lg leading-relaxed">Designing highly intuitive fintech, SaaS, and ed-tech interfaces, using a rigorous logic-based design thinking process.</p>
+                </div>
+                <div class="relative reveal delay-200 cursor-hover-target group timeline-node">
+                    <div class="timeline-dot absolute -left-[65px] top-1 w-[22px] h-[22px] bg-[#0A0A0D] rounded-full border-4 border-slate-700 transition duration-300 z-10"></div>
+                    <div class="text-[11px] tracking-widest text-slate-500 font-bold mb-3 uppercase">1+ Year Experience</div>
+                    <h3 class="text-3xl font-semibold text-white mb-2">Business Loan Coordinator</h3>
+                    <div class="text-slate-300 text-md mb-4 italic font-medium">@ Aadifidelis Solutions</div>
+                    <p class="text-slate-400 text-lg leading-relaxed">Managed high-level stakeholder expectations and solved complex business logic problems dealing with massive financial data.</p>
+                </div>
+                <div class="relative reveal delay-300 cursor-hover-target group timeline-node">
+                    <div class="timeline-dot absolute -left-[65px] top-1 w-[22px] h-[22px] bg-[#0A0A0D] rounded-full border-4 border-slate-700 transition duration-300 z-10"></div>
+                    <div class="text-[11px] tracking-widest text-slate-500 font-bold mb-3 uppercase">Graduated 2023</div>
+                    <h3 class="text-3xl font-semibold text-white mb-3">Bachelor of Commerce (B.Com)</h3>
+                    <p class="text-slate-400 text-lg leading-relaxed">Developed a strong analytical mindset, merging numbers and logic, which forms the core of my user-centered design strategy.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. CONTACT -->
+    <footer id="contact" class="border-t border-white/5 bg-[#050507] relative overflow-hidden z-20">
+        <div class="max-w-[1920px] mx-auto px-8 md:px-16 py-48 text-center relative z-10 reveal">
+            <div class="inline-block mb-10 px-6 py-2.5 border border-white/10 rounded-full bg-white/5 text-[11px] font-bold text-slate-300 tracking-widest uppercase shadow-lg backdrop-blur-sm">
+                🚀 Open to full-time roles & projects
+            </div>
+            <h2 class="text-6xl md:text-8xl xl:text-9xl font-serif mb-12 text-white text-reveal-anim">Let's build something <br><span class="italic font-normal text-accent">great.</span></h2>
+
+            <div class="magnetic-wrap mt-10">
+                <a href="mailto:dr.psycho7777@gmail.com" class="magnetic-btn inline-block px-12 py-5 bg-white text-black rounded-full font-bold shadow-[0_0_40px_rgba(255,255,255,0.2)] text-xl cursor-hover-target uppercase tracking-wider text-sm">
+                    Send an Email ➔
+                </a>
+            </div>
+
+            <!-- Socials -->
+            <div class="flex gap-8 justify-center mt-24">
+                <a href="https://www.linkedin.com/in/chiragsojitra7" target="_blank" class="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white/5 hover:border-white transition duration-300 cursor-hover-target shadow-lg shadow-white/5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/></svg>
+                </a>
+                <a href="https://www.behance.net/chiragpatel220" target="_blank" class="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white/5 hover:border-white transition duration-300 cursor-hover-target shadow-lg shadow-white/5">
+                    <img src="Behance png-Photoroom.png" alt="Behance" class="w-9 h-9 object-contain filter invert"> <!-- Added invert to make the logo pure white! -->
+                </a>
+            </div>
+
+            <!-- COPYRIGHT 2026 -->
+            <p class="mt-32 text-sm text-slate-500 font-semibold tracking-widest uppercase">© 2026 Chirag Sojitra. Designed with precision.</p>
+        </div>
+    </footer>
+
+    <!-- INTERACTION SCRIPTS -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            
+            // 1. PRELOADER
+            const preloader = document.getElementById('preloader');
+            const counter = document.getElementById('loader-counter');
+            const progressBar = document.getElementById('loader-bar');
+            let count = 0;
+            let interval = setInterval(() => {
+                count += Math.floor(Math.random() * 4) + 1; 
+                if (count >= 100) {
+                    count = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        preloader.classList.add('preloader-hidden');
+                        document.body.classList.remove('overflow-hidden');
+                        setTimeout(initScrollReveals, 300);
+                    }, 600);
+                }
+                counter.innerText = count + '%';
+                progressBar.style.width = count + '%';
+            }, 30);
+
+            // 2. STORYTELLING SCROLL REVEALS
+            function initScrollReveals() {
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('active');
+                            obs.unobserve(entry.target); 
+                        }
+                    });
+                }, { threshold: 0.15 });
+                document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+            }
+
+            // 3. PARALLAX, EXACT-SCROLL TIMELINE, AND BUBBLE REPEL
+            const timelineContainer = document.getElementById('timeline-container');
+            const timelineProgress = document.getElementById('timeline-progress');
+            const timelineNodes = document.querySelectorAll('.timeline-node');
+            const toolBubbles = document.querySelectorAll('.tool-bubble');
+
+            window.addEventListener('scroll', () => {
+                const scrolled = window.scrollY;
+                
+                // Parallax Glows
+                document.querySelectorAll('.parallax-bg').forEach(bg => {
+                    const speed = bg.getAttribute('data-speed');
+                    bg.style.transform = `translateY(${scrolled * speed}px)`;
+                });
+
+                // EXACT 1-TO-1 TOP-DOWN TIMELINE PROGRESS
+                if(timelineContainer && timelineProgress) {
+                    const rect = timelineContainer.getBoundingClientRect();
+                    const windowHeight = window.innerHeight;
+                    
+                    let scrollPercentage = (windowHeight - rect.top) / (rect.height + windowHeight/2);
+                    if(scrollPercentage < 0) scrollPercentage = 0;
+                    if(scrollPercentage > 1) scrollPercentage = 1;
+                    
+                    timelineProgress.style.height = (scrollPercentage * 100) + '%';
+                    
+                    const progressHeightPixels = rect.height * scrollPercentage;
+                    const barBottomEdge = progressHeightPixels;
+                    
+                    timelineNodes.forEach(node => {
+                        const dot = node.querySelector('.timeline-dot');
+                        const nodeTop = node.offsetTop;
+                        
+                        if (barBottomEdge >= nodeTop + 10) {
+                            // When the beam hits it, it turns pure white!
+                            dot.classList.remove('border-slate-700', 'bg-[#0A0A0D]');
+                            dot.classList.add('border-white', 'bg-white', 'shadow-[0_0_10px_rgba(255,255,255,0.8)]');
+                        } else {
+                            dot.classList.add('border-slate-700', 'bg-[#0A0A0D]');
+                            dot.classList.remove('border-white', 'bg-white', 'shadow-[0_0_10px_rgba(255,255,255,0.8)]');
+                        }
+                    });
+                }
+            });
+
+            // 4. INTELLIGENT AI BOT CURSOR & BUBBLE REPEL PHYSICS
+            const cursorDot = document.querySelector('.cursor-dot');
+            const cursorOutline = document.querySelector('.cursor-outline');
+            
+            if (window.matchMedia("(pointer: fine)").matches) {
+                
+                window.addEventListener('mousemove', function (e) {
+                    const posX = e.clientX;
+                    const posY = e.clientY;
+                    
+                    cursorDot.style.transform = `translate(${posX}px, ${posY}px) translate(-50%, -50%)`;
+
+                    cursorOutline.animate({
+                        transform: `translate(${posX}px, ${posY}px) translate(-50%, -50%)`
+                    }, { duration: 400, fill: "forwards" });
+
+                    // Magnetic Repel Bubble Physics
+                    toolBubbles.forEach(bubble => {
+                        const rect = bubble.getBoundingClientRect();
+                        const bubbleX = rect.left + rect.width / 2;
+                        const bubbleY = rect.top + rect.height / 2;
+                        
+                        const distX = posX - bubbleX;
+                        const distY = posY - bubbleY;
+                        const distance = Math.sqrt(distX * distX + distY * distY);
+                        
+                        const magnetRadius = 180;
+                        const repelStrength = 40; 
+                        
+                        if (distance < magnetRadius) {
+                            const force = (magnetRadius - distance) / magnetRadius;
+                            const pushX = -(distX / distance) * force * repelStrength;
+                            const pushY = -(distY / distance) * force * repelStrength;
+                            bubble.style.transform = `translate(${pushX}px, ${pushY}px) scale(1.05)`;
+                            bubble.style.borderColor = 'rgba(255,255,255,0.4)';
+                        } else {
+                            bubble.style.transform = `translate(0px, 0px) scale(1)`;
+                            bubble.style.borderColor = 'rgba(255,255,255,0.1)'; 
+                        }
+                    });
+                });
+
+                // Hover Effects 
+                const hoverTargets = document.querySelectorAll('.cursor-hover-target, a, button, .magnetic-btn');
+                hoverTargets.forEach(target => {
+                    target.addEventListener('mouseenter', () => {
+                        cursorOutline.classList.add('hovered');
+                        cursorDot.classList.add('hovered');
+                    });
+                    target.addEventListener('mouseleave', () => {
+                        cursorOutline.classList.remove('hovered');
+                        cursorDot.classList.remove('hovered');
+                    });
+                });
+
+                // Magnetic Button Pull
+                document.querySelectorAll('.magnetic-wrap').forEach(wrap => {
+                    const btn = wrap.querySelector('.magnetic-btn');
+                    wrap.addEventListener('mousemove', (e) => {
+                        const rect = wrap.getBoundingClientRect();
+                        const x = (e.clientX - rect.left - rect.width / 2) * 0.4;
+                        const y = (e.clientY - rect.top - rect.height / 2) * 0.4;
+                        btn.style.transform = `translate(${x}px, ${y}px)`;
+                    });
+                    wrap.addEventListener('mouseleave', () => {
+                        btn.style.transform = `translate(0px, 0px)`;
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
